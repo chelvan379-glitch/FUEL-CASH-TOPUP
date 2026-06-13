@@ -1,0 +1,1343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#1a3a2e" />
+  <meta name="description" content="Fuel Cash Topup - Telecom Site Management" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="icon-192.png" />
+  <title>FUEL CASH TOPUP</title>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <style>
+    :root {
+      --green-dark: #1a3a2e;
+      --green-mid: #2d6a4f;
+      --green-accent: #40916c;
+      --green-light: #74c69d;
+      --green-pale: #d8f3dc;
+      --amber: #f4a261;
+      --amber-dark: #e76f51;
+      --white: #ffffff;
+      --grey-100: #f5f7f5;
+      --grey-200: #e8ede8;
+      --grey-400: #9cad9c;
+      --grey-700: #444f44;
+      --text: #1c2a1c;
+      --shadow-sm: 0 1px 4px rgba(26,58,46,0.10);
+      --shadow-md: 0 4px 16px rgba(26,58,46,0.14);
+      --shadow-lg: 0 8px 32px rgba(26,58,46,0.18);
+      --radius: 12px;
+      --radius-sm: 8px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Barlow', sans-serif;
+      background: var(--grey-100);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      max-width: 480px;
+      margin: 0 auto;
+      position: relative;
+    }
+
+    /* ── HEADER ── */
+    header {
+      background: var(--green-dark);
+      color: var(--white);
+      padding: 14px 18px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: var(--shadow-md);
+    }
+    .header-title {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 800;
+      font-size: 1.25rem;
+      letter-spacing: 0.04em;
+      line-height: 1.1;
+    }
+    .header-title span { color: var(--green-light); display: block; font-size: 0.65rem; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; }
+    .header-right { display: flex; gap: 8px; align-items: center; }
+    .icon-btn {
+      background: rgba(255,255,255,0.10);
+      border: none;
+      border-radius: 8px;
+      color: var(--white);
+      width: 36px; height: 36px;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      font-size: 1.1rem;
+      transition: background 0.15s;
+    }
+    .icon-btn:hover { background: rgba(255,255,255,0.20); }
+
+    /* ── NAV ── */
+    nav {
+      background: var(--white);
+      display: flex;
+      border-bottom: 2px solid var(--grey-200);
+      position: sticky;
+      top: 60px;
+      z-index: 90;
+    }
+    .nav-tab {
+      flex: 1;
+      padding: 11px 4px 9px;
+      text-align: center;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 700;
+      font-size: 0.8rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--grey-400);
+      cursor: pointer;
+      border-bottom: 3px solid transparent;
+      transition: color 0.15s, border-color 0.15s;
+      user-select: none;
+    }
+    .nav-tab.active { color: var(--green-dark); border-bottom-color: var(--green-accent); }
+    .nav-tab .tab-icon { display: block; font-size: 1.2rem; margin-bottom: 1px; }
+
+    /* ── PAGES ── */
+    .page { display: none; flex-direction: column; flex: 1; }
+    .page.active { display: flex; }
+
+    /* ── DASHBOARD ── */
+    .dash-hero {
+      background: linear-gradient(135deg, var(--green-dark) 0%, var(--green-mid) 100%);
+      color: var(--white);
+      padding: 20px 18px 24px;
+    }
+    .dash-greeting { font-size: 0.78rem; color: var(--green-light); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 4px; }
+    .dash-total-label { font-size: 0.85rem; color: rgba(255,255,255,0.7); margin-top: 14px; }
+    .dash-total-amount {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 2.6rem;
+      font-weight: 800;
+      letter-spacing: -0.01em;
+      line-height: 1;
+      margin-top: 4px;
+    }
+    .dash-total-amount small { font-size: 1.1rem; font-weight: 600; }
+
+    .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 16px 18px; }
+    .stat-card {
+      background: var(--white);
+      border-radius: var(--radius);
+      padding: 14px 14px 12px;
+      box-shadow: var(--shadow-sm);
+      border-left: 4px solid var(--green-accent);
+    }
+    .stat-card.amber { border-left-color: var(--amber); }
+    .stat-label { font-size: 0.72rem; color: var(--grey-400); text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 4px; }
+    .stat-val { font-family: 'Barlow Condensed', sans-serif; font-size: 1.6rem; font-weight: 800; color: var(--green-dark); }
+    .stat-card.amber .stat-val { color: var(--amber-dark); }
+
+    .section-hdr {
+      padding: 12px 18px 8px;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 0.78rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--grey-400);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .records-list { padding: 0 18px 18px; display: flex; flex-direction: column; gap: 10px; }
+    .record-card {
+      background: var(--white);
+      border-radius: var(--radius);
+      padding: 13px 14px;
+      box-shadow: var(--shadow-sm);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      cursor: pointer;
+      transition: box-shadow 0.15s, transform 0.1s;
+    }
+    .record-card:active { transform: scale(0.99); box-shadow: var(--shadow-md); }
+    .record-icon {
+      width: 40px; height: 40px;
+      border-radius: 10px;
+      background: var(--green-pale);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.2rem;
+      flex-shrink: 0;
+    }
+    .record-icon.temp { background: #fff3e0; }
+    .record-info { flex: 1; min-width: 0; }
+    .record-plate { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 1rem; color: var(--green-dark); }
+    .record-sub { font-size: 0.76rem; color: var(--grey-400); margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .record-amount { font-family: 'Barlow Condensed', sans-serif; font-weight: 800; font-size: 1.1rem; color: var(--green-mid); }
+
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--grey-400);
+    }
+    .empty-state .empty-icon { font-size: 3rem; margin-bottom: 12px; }
+    .empty-state p { font-size: 0.9rem; }
+
+    /* ── ENTRY FORM ── */
+    .form-wrap { padding: 16px 18px 100px; display: flex; flex-direction: column; gap: 14px; }
+    .form-section-title {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 700;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--grey-400);
+      padding: 6px 0 2px;
+      border-bottom: 1px solid var(--grey-200);
+    }
+    .field { display: flex; flex-direction: column; gap: 5px; }
+    .field label { font-size: 0.8rem; font-weight: 600; color: var(--grey-700); }
+    .field label .req { color: var(--amber-dark); }
+    .field input, .field select, .field textarea {
+      background: var(--white);
+      border: 1.5px solid var(--grey-200);
+      border-radius: var(--radius-sm);
+      padding: 11px 13px;
+      font-family: 'Barlow', sans-serif;
+      font-size: 0.93rem;
+      color: var(--text);
+      outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+      width: 100%;
+    }
+    .field input:focus, .field select:focus, .field textarea:focus {
+      border-color: var(--green-accent);
+      box-shadow: 0 0 0 3px rgba(64,145,108,0.12);
+    }
+    .field textarea { resize: vertical; min-height: 76px; }
+    .radio-group { display: flex; gap: 10px; }
+    .radio-opt {
+      flex: 1;
+      border: 1.5px solid var(--grey-200);
+      border-radius: var(--radius-sm);
+      padding: 10px 12px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--white);
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--grey-700);
+      transition: border-color 0.15s, background 0.15s;
+      user-select: none;
+    }
+    .radio-opt input[type=radio] { accent-color: var(--green-accent); }
+    .radio-opt.selected { border-color: var(--green-accent); background: var(--green-pale); color: var(--green-dark); }
+
+    .btn-primary {
+      background: var(--green-dark);
+      color: var(--white);
+      border: none;
+      border-radius: var(--radius);
+      padding: 14px 20px;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 700;
+      font-size: 1rem;
+      letter-spacing: 0.05em;
+      cursor: pointer;
+      width: 100%;
+      transition: background 0.15s, transform 0.1s;
+    }
+    .btn-primary:active { transform: scale(0.98); background: var(--green-mid); }
+    .btn-secondary {
+      background: var(--grey-100);
+      color: var(--grey-700);
+      border: 1.5px solid var(--grey-200);
+      border-radius: var(--radius);
+      padding: 12px 16px;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 700;
+      font-size: 0.95rem;
+      letter-spacing: 0.04em;
+      cursor: pointer;
+      width: 100%;
+      transition: background 0.15s;
+    }
+    .btn-secondary:active { background: var(--grey-200); }
+
+    /* ── EXCEL PAGE ── */
+    .excel-wrap { padding: 16px 18px 100px; display: flex; flex-direction: column; gap: 14px; }
+    .preview-table-wrap {
+      background: var(--white);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-sm);
+      overflow: hidden;
+    }
+    .preview-table-hdr {
+      background: var(--green-dark);
+      color: var(--white);
+      padding: 10px 14px;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 700;
+      font-size: 0.82rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .preview-table { width: 100%; border-collapse: collapse; font-size: 0.78rem; }
+    .preview-table th {
+      background: var(--green-pale);
+      color: var(--green-dark);
+      padding: 7px 10px;
+      text-align: left;
+      font-weight: 700;
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .preview-table td { padding: 8px 10px; border-bottom: 1px solid var(--grey-200); vertical-align: top; }
+    .preview-table tr:last-child td { border-bottom: none; }
+    .preview-table tr:hover td { background: var(--grey-100); }
+    .total-row td { font-weight: 700; background: var(--green-pale) !important; color: var(--green-dark); }
+
+    .export-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .export-btn {
+      background: var(--white);
+      border: 1.5px solid var(--grey-200);
+      border-radius: var(--radius);
+      padding: 14px 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 700;
+      font-size: 0.82rem;
+      letter-spacing: 0.04em;
+      color: var(--grey-700);
+      box-shadow: var(--shadow-sm);
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .export-btn:active { background: var(--grey-100); }
+    .export-btn .ex-icon { font-size: 1.5rem; }
+    .export-btn.primary-ex { background: var(--green-dark); color: var(--white); border-color: var(--green-dark); }
+    .export-btn.wa-ex { background: #25d366; color: var(--white); border-color: #25d366; }
+    .export-btn.amber-ex { background: var(--amber); color: var(--white); border-color: var(--amber); }
+
+    /* ── SETTINGS ── */
+    .settings-wrap { padding: 16px 18px 100px; display: flex; flex-direction: column; gap: 14px; }
+    .settings-card {
+      background: var(--white);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-sm);
+      overflow: hidden;
+    }
+    .settings-card-title {
+      background: var(--grey-100);
+      padding: 9px 14px;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--grey-400);
+    }
+    .settings-row {
+      padding: 13px 14px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border-bottom: 1px solid var(--grey-200);
+      cursor: pointer;
+      transition: background 0.1s;
+    }
+    .settings-row:last-child { border-bottom: none; }
+    .settings-row:active { background: var(--grey-100); }
+    .settings-row-icon { font-size: 1.2rem; width: 28px; text-align: center; }
+    .settings-row-text { flex: 1; }
+    .settings-row-text strong { display: block; font-size: 0.88rem; font-weight: 600; color: var(--text); }
+    .settings-row-text span { font-size: 0.76rem; color: var(--grey-400); }
+    .settings-row-arrow { color: var(--grey-400); font-size: 0.8rem; }
+    .danger-row strong { color: var(--amber-dark) !important; }
+
+    /* ── TOAST ── */
+    #toast {
+      position: fixed;
+      bottom: 84px;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: var(--green-dark);
+      color: var(--white);
+      padding: 10px 20px;
+      border-radius: 30px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      opacity: 0;
+      transition: opacity 0.3s, transform 0.3s;
+      z-index: 999;
+      pointer-events: none;
+      white-space: nowrap;
+      box-shadow: var(--shadow-lg);
+    }
+    #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    /* ── MODAL ── */
+    .modal-overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 200;
+      display: none;
+      align-items: flex-end;
+      justify-content: center;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal-sheet {
+      background: var(--white);
+      border-radius: 20px 20px 0 0;
+      padding: 20px 18px 32px;
+      width: 100%;
+      max-width: 480px;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: var(--shadow-lg);
+      animation: slideUp 0.25s ease;
+    }
+    @keyframes slideUp { from { transform: translateY(60px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    .modal-handle {
+      width: 40px; height: 4px;
+      background: var(--grey-200);
+      border-radius: 4px;
+      margin: 0 auto 16px;
+    }
+    .modal-title {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 1.2rem;
+      font-weight: 800;
+      color: var(--green-dark);
+      margin-bottom: 14px;
+    }
+    .modal-detail-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--grey-200); font-size: 0.88rem; }
+    .modal-detail-row:last-of-type { border-bottom: none; }
+    .modal-detail-row .key { color: var(--grey-400); }
+    .modal-detail-row .val { font-weight: 600; text-align: right; color: var(--text); }
+    .modal-actions { display: flex; gap: 10px; margin-top: 16px; }
+
+    /* ── BOTTOM NAV ── */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100%;
+      max-width: 480px;
+      background: var(--white);
+      border-top: 1px solid var(--grey-200);
+      display: flex;
+      z-index: 100;
+      box-shadow: 0 -4px 16px rgba(26,58,46,0.08);
+    }
+    .bnav-btn {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 10px 4px 12px;
+      cursor: pointer;
+      border: none;
+      background: none;
+      color: var(--grey-400);
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      transition: color 0.15s;
+      gap: 3px;
+    }
+    .bnav-btn .bn-icon { font-size: 1.3rem; }
+    .bnav-btn.active { color: var(--green-dark); }
+    .bnav-btn.add-center {
+      background: var(--green-dark);
+      color: var(--white);
+      border-radius: 0;
+    }
+    .bnav-btn.add-center .bn-icon { font-size: 1.5rem; }
+
+    /* ── PRINT STYLES ── */
+    @media print {
+      header, nav, .bottom-nav, .export-grid, #toast { display: none !important; }
+      body { max-width: 100%; background: white; }
+      .page { display: flex !important; }
+      .page:not(#page-excel) { display: none !important; }
+      .preview-table-wrap { box-shadow: none; }
+    }
+
+    .badge {
+      display: inline-block;
+      background: var(--green-pale);
+      color: var(--green-dark);
+      border-radius: 30px;
+      padding: 2px 8px;
+      font-size: 0.72rem;
+      font-weight: 700;
+    }
+    .badge.temp { background: #fff3e0; color: #e65100; }
+    .amount-big { font-family: 'Barlow Condensed', sans-serif; font-size: 1.5rem; font-weight: 800; color: var(--green-mid); }
+
+    .scroll-content { overflow-y: auto; flex: 1; }
+  </style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="header-title">
+    FUEL CASH TOPUP
+    <span>⛽ Telecom Site Management</span>
+  </div>
+  <div class="header-right">
+    <button class="icon-btn" onclick="printPage()" title="Print">🖨️</button>
+    <button class="icon-btn" onclick="showModal('modal-info')" title="Info">ℹ️</button>
+  </div>
+</header>
+
+<!-- TOP TABS -->
+<nav>
+  <div class="nav-tab active" data-page="dashboard" onclick="switchPage('dashboard', this)">
+    <span class="tab-icon">📊</span>Dashboard
+  </div>
+  <div class="nav-tab" data-page="entry" onclick="switchPage('entry', this)">
+    <span class="tab-icon">➕</span>Entry
+  </div>
+  <div class="nav-tab" data-page="excel" onclick="switchPage('excel', this)">
+    <span class="tab-icon">📋</span>Excel
+  </div>
+  <div class="nav-tab" data-page="settings" onclick="switchPage('settings', this)">
+    <span class="tab-icon">⚙️</span>Settings
+  </div>
+</nav>
+
+<!-- ══ PAGE: DASHBOARD ══ -->
+<section id="page-dashboard" class="page active scroll-content">
+  <div class="dash-hero">
+    <div class="dash-greeting">📍 Telecom Site Fuel Claims</div>
+    <div id="dash-date" style="font-size:0.8rem;color:rgba(255,255,255,0.6);margin-top:4px;"></div>
+    <div class="dash-total-label">Total Claims Amount</div>
+    <div class="dash-total-amount"><small>RM </small><span id="dash-total">0.00</span></div>
+  </div>
+
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-label">Total Records</div>
+      <div class="stat-val" id="stat-total-rec">0</div>
+    </div>
+    <div class="stat-card amber">
+      <div class="stat-label">This Month</div>
+      <div class="stat-val" id="stat-month">RM 0</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Permanent</div>
+      <div class="stat-val" id="stat-perm">0</div>
+    </div>
+    <div class="stat-card amber">
+      <div class="stat-label">Temporary</div>
+      <div class="stat-val" id="stat-temp">0</div>
+    </div>
+  </div>
+
+  <div class="section-hdr">
+    Recent Claims
+    <span id="rec-count" class="badge">0</span>
+  </div>
+  <div class="records-list" id="records-list">
+    <div class="empty-state">
+      <div class="empty-icon">📂</div>
+      <p>No records yet.<br>Tap <strong>Entry</strong> to add your first claim.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ══ PAGE: ENTRY FORM ══ -->
+<section id="page-entry" class="page scroll-content">
+  <div class="form-wrap">
+    <div class="form-section-title">📋 Claim Details</div>
+
+    <div class="field">
+      <label>No. <span class="req">*</span></label>
+      <input type="number" id="f-no" placeholder="Auto-generated" readonly style="background:var(--grey-100);cursor:not-allowed;" />
+    </div>
+
+    <div class="field">
+      <label>Date <span class="req">*</span></label>
+      <input type="date" id="f-date" required />
+    </div>
+
+    <div class="field">
+      <label>No Plate <span class="req">*</span></label>
+      <input type="text" id="f-plate" placeholder="e.g. VNB7516" style="text-transform:uppercase;" required />
+    </div>
+
+    <div class="field">
+      <label>Vehicle Type <span class="req">*</span></label>
+      <div class="radio-group">
+        <label class="radio-opt selected" id="opt-perm" onclick="selectVehicleType('Permanent')">
+          <input type="radio" name="vtype" value="Permanent" checked /> 🚗 Permanent
+        </label>
+        <label class="radio-opt" id="opt-temp" onclick="selectVehicleType('Temporary')">
+          <input type="radio" name="vtype" value="Temporary" /> 🚙 Temporary
+        </label>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Car Type <span class="req">*</span></label>
+      <select id="f-cartype">
+        <option value="">-- Select Car Type --</option>
+        <option value="Triton 4WD">Triton 4WD</option>
+        <option value="Hilux 4WD">Hilux 4WD</option>
+        <option value="Ranger 4WD">Ranger 4WD</option>
+        <option value="Navara 4WD">Navara 4WD</option>
+        <option value="Fortuner 4WD">Fortuner 4WD</option>
+        <option value="Prado 4WD">Prado 4WD</option>
+        <option value="Sedan">Sedan</option>
+        <option value="MPV">MPV</option>
+        <option value="Van">Van</option>
+        <option value="Motorcycle">Motorcycle</option>
+        <option value="Other">Other</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label>Reason <span class="req">*</span></label>
+      <select id="f-reason-select" onchange="handleReasonSelect(this.value)">
+        <option value="">-- Select Reason --</option>
+        <option value="Permanent vehicle sent for scheduled servicing - Minor repairs">Scheduled Servicing - Minor Repairs</option>
+        <option value="Permanent vehicle sent for scheduled servicing - Major repairs">Scheduled Servicing - Major Repairs</option>
+        <option value="Temporary vehicle rental - Site inspection">Temporary - Site Inspection</option>
+        <option value="Temporary vehicle rental - Emergency maintenance">Temporary - Emergency Maintenance</option>
+        <option value="Fuel top-up for site generator">Fuel Top-up - Site Generator</option>
+        <option value="Fuel card payment declined, individual limit card exceeded">Fuel Card Declined - Individual Limit Exceeded</option>
+        <option value="Temporary Vehicle, Permanent Vehicle Sent to Routine Maintenance and PUSPAKOM Inspection">Temporary Vehicle, Permanent Vehicle Sent to Routine Maintenance and PUSPAKOM Inspection</option>
+        <option value="Temporary Vehicle, Permanent Vehicle Sent to Routine Maintenance Services">Temporary Vehicle, Permanent Vehicle Sent to Routine Maintenance Services</option>
+        <option value="Temporary Vehicle, Permanent Vehicle Sent to Accident Repair">Temporary Vehicle, Permanent Vehicle Sent to Accident Repair</option>
+        <option value="Other">Other (Custom)</option>
+      </select>
+    </div>
+
+    <div class="field" id="reason-custom-field" style="display:none;">
+      <label>Custom Reason</label>
+      <textarea id="f-reason-custom" placeholder="Enter custom reason..."></textarea>
+    </div>
+
+    <div class="field">
+      <label>Cash Amount (RM) <span class="req">*</span></label>
+      <input type="number" id="f-amount" placeholder="0.00" step="0.01" min="0" required />
+    </div>
+
+    <div class="field">
+      <label>Notes (Optional)</label>
+      <textarea id="f-notes" placeholder="Additional notes..."></textarea>
+    </div>
+
+    <button class="btn-primary" onclick="submitEntry()">✅ Save Claim</button>
+    <button class="btn-secondary" onclick="clearForm()">🗑️ Clear Form</button>
+  </div>
+</section>
+
+<!-- ══ PAGE: EXCEL ══ -->
+<section id="page-excel" class="page scroll-content">
+  <div class="excel-wrap">
+    <div class="form-section-title">📊 Excel Preview & Export</div>
+
+    <!-- Filter -->
+    <div style="display:flex;gap:10px;align-items:center;">
+      <div class="field" style="flex:1;margin:0;">
+        <select id="filter-month" onchange="renderExcelPreview()">
+          <option value="all">All Records</option>
+        </select>
+      </div>
+      <div class="field" style="flex:1;margin:0;">
+        <select id="filter-type" onchange="renderExcelPreview()">
+          <option value="all">All Types</option>
+          <option value="Permanent">Permanent</option>
+          <option value="Temporary">Temporary</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Table Preview -->
+    <div class="preview-table-wrap">
+      <div class="preview-table-hdr">
+        Fuel Claim Records
+        <span id="excel-count" class="badge" style="background:rgba(255,255,255,0.2);color:#fff;">0 rows</span>
+      </div>
+      <div style="overflow-x:auto;">
+        <table class="preview-table">
+          <thead>
+            <tr>
+              <th>No</th>
+              <th>Date</th>
+              <th>Plate</th>
+              <th>Type</th>
+              <th>Car</th>
+              <th>Reason</th>
+              <th>Amount (RM)</th>
+            </tr>
+          </thead>
+          <tbody id="excel-tbody"></tbody>
+          <tfoot id="excel-tfoot"></tfoot>
+        </table>
+      </div>
+    </div>
+
+    <!-- Export Buttons -->
+    <div class="form-section-title">📤 Export & Share</div>
+    <div class="export-grid">
+      <button class="export-btn primary-ex" onclick="exportExcel()">
+        <span class="ex-icon">📗</span>Export Excel
+      </button>
+      <button class="export-btn wa-ex" onclick="shareWhatsApp()">
+        <span class="ex-icon">💬</span>WhatsApp
+      </button>
+      <button class="export-btn amber-ex" onclick="exportJSON()">
+        <span class="ex-icon">💾</span>JSON Backup
+      </button>
+      <button class="export-btn" onclick="document.getElementById('json-import').click()">
+        <span class="ex-icon">📥</span>Import JSON
+      </button>
+    </div>
+    <input type="file" id="json-import" accept=".json" style="display:none;" onchange="importJSON(event)" />
+
+    <button class="btn-secondary" onclick="printPage()">🖨️ Print Summary</button>
+  </div>
+</section>
+
+<!-- ══ PAGE: SETTINGS ══ -->
+<section id="page-settings" class="page scroll-content">
+  <div class="settings-wrap">
+    <div class="settings-card">
+      <div class="settings-card-title">App Info</div>
+      <div class="settings-row">
+        <div class="settings-row-icon">⛽</div>
+        <div class="settings-row-text">
+          <strong>FUEL CASH TOPUP</strong>
+          <span>Version 1.0.0 — PWA for Telecom Site Management</span>
+        </div>
+      </div>
+      <div class="settings-row" onclick="toggleInstallPrompt()">
+        <div class="settings-row-icon">📱</div>
+        <div class="settings-row-text">
+          <strong>Install as App</strong>
+          <span>Add to home screen for offline use</span>
+        </div>
+        <div class="settings-row-arrow">›</div>
+      </div>
+    </div>
+
+    <div class="settings-card">
+      <div class="settings-card-title">Company Details</div>
+      <div class="settings-row" onclick="editCompany()">
+        <div class="settings-row-icon">🏢</div>
+        <div class="settings-row-text">
+          <strong>Company Name</strong>
+          <span id="setting-company">Not set</span>
+        </div>
+        <div class="settings-row-arrow">›</div>
+      </div>
+      <div class="settings-row" onclick="editApprover()">
+        <div class="settings-row-icon">👤</div>
+        <div class="settings-row-text">
+          <strong>Approver Name</strong>
+          <span id="setting-approver">Not set</span>
+        </div>
+        <div class="settings-row-arrow">›</div>
+      </div>
+    </div>
+
+    <div class="settings-card">
+      <div class="settings-card-title">Data Management</div>
+      <div class="settings-row" onclick="exportJSON()">
+        <div class="settings-row-icon">💾</div>
+        <div class="settings-row-text">
+          <strong>Export JSON Backup</strong>
+          <span>Save all records to JSON file</span>
+        </div>
+        <div class="settings-row-arrow">›</div>
+      </div>
+      <div class="settings-row" onclick="document.getElementById('json-import').click()">
+        <div class="settings-row-icon">📥</div>
+        <div class="settings-row-text">
+          <strong>Import JSON Backup</strong>
+          <span>Restore records from backup</span>
+        </div>
+        <div class="settings-row-arrow">›</div>
+      </div>
+      <div class="settings-row danger-row" onclick="confirmClearAll()">
+        <div class="settings-row-icon">🗑️</div>
+        <div class="settings-row-text">
+          <strong>Clear All Records</strong>
+          <span>Permanently delete all data</span>
+        </div>
+        <div class="settings-row-arrow">›</div>
+      </div>
+    </div>
+
+    <div class="settings-card">
+      <div class="settings-card-title">Storage Status</div>
+      <div class="settings-row">
+        <div class="settings-row-icon">🗄️</div>
+        <div class="settings-row-text">
+          <strong>IndexedDB Storage</strong>
+          <span id="storage-status">Checking...</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- BOTTOM NAV -->
+<div class="bottom-nav">
+  <button class="bnav-btn active" onclick="switchPage('dashboard',null,this)">
+    <span class="bn-icon">📊</span>Home
+  </button>
+  <button class="bnav-btn" onclick="switchPage('entry',null,this)">
+    <span class="bn-icon">➕</span>Entry
+  </button>
+  <button class="bnav-btn" onclick="switchPage('excel',null,this)">
+    <span class="bn-icon">📋</span>Excel
+  </button>
+  <button class="bnav-btn" onclick="switchPage('settings',null,this)">
+    <span class="bn-icon">⚙️</span>Settings
+  </button>
+</div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<!-- MODAL: Record Detail -->
+<div class="modal-overlay" id="modal-record">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="modal-record-title">Record Detail</div>
+    <div id="modal-record-body"></div>
+    <div class="modal-actions">
+      <button class="btn-secondary" style="flex:1;" onclick="closeModal('modal-record')">Close</button>
+      <button class="btn-primary" style="flex:1;" id="modal-delete-btn">🗑️ Delete</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Info -->
+<div class="modal-overlay" id="modal-info">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">About FUEL CASH TOPUP</div>
+    <p style="font-size:0.88rem;color:var(--grey-700);line-height:1.6;">
+      A Progressive Web App (PWA) for managing fuel cash top-up claims in telecom site operations.<br><br>
+      ✅ Works offline with IndexedDB<br>
+      ✅ Export to Excel (.xlsx)<br>
+      ✅ WhatsApp sharing<br>
+      ✅ JSON backup & restore<br>
+      ✅ Printable summaries
+    </p>
+    <div style="margin-top:16px;">
+      <button class="btn-primary" onclick="closeModal('modal-info')">Got it</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── IndexedDB Setup ──
+const DB_NAME = 'FuelClaimDB';
+const DB_VER = 1;
+let db;
+
+function openDB() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(DB_NAME, DB_VER);
+    req.onupgradeneeded = e => {
+      const d = e.target.result;
+      if (!d.objectStoreNames.contains('claims')) {
+        const store = d.createObjectStore('claims', { keyPath: 'id', autoIncrement: true });
+        store.createIndex('date', 'date', { unique: false });
+      }
+      if (!d.objectStoreNames.contains('settings')) {
+        d.createObjectStore('settings', { keyPath: 'key' });
+      }
+    };
+    req.onsuccess = e => { db = e.target.result; resolve(db); };
+    req.onerror = () => reject(req.error);
+  });
+}
+
+function dbGetAll(store) {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(store, 'readonly');
+    const req = tx.objectStore(store).getAll();
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+function dbAdd(store, item) {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(store, 'readwrite');
+    const req = tx.objectStore(store).add(item);
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+function dbDelete(store, key) {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(store, 'readwrite');
+    const req = tx.objectStore(store).delete(key);
+    req.onsuccess = () => resolve();
+    req.onerror = () => reject(req.error);
+  });
+}
+
+function dbPut(store, item) {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(store, 'readwrite');
+    const req = tx.objectStore(store).put(item);
+    req.onsuccess = () => resolve();
+    req.onerror = () => reject(req.error);
+  });
+}
+
+function dbGet(store, key) {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(store, 'readonly');
+    const req = tx.objectStore(store).get(key);
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+// ── State ──
+let allRecords = [];
+let vehicleType = 'Permanent';
+let currentDeleteId = null;
+
+// ── Init ──
+async function init() {
+  await openDB();
+  allRecords = await dbGetAll('claims');
+  setTodayDate();
+  updateDashboard();
+  populateMonthFilter();
+  renderExcelPreview();
+  loadSettings();
+  updateStorageStatus();
+  document.getElementById('dash-date').textContent = new Date().toLocaleDateString('en-MY', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+}
+
+function setTodayDate() {
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('f-date').value = today;
+}
+
+function updateDashboard() {
+  const total = allRecords.reduce((s, r) => s + parseFloat(r.amount || 0), 0);
+  document.getElementById('dash-total').textContent = total.toLocaleString('en-MY', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+  const now = new Date();
+  const monthRecs = allRecords.filter(r => {
+    const d = new Date(r.date);
+    return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+  });
+  const monthTotal = monthRecs.reduce((s, r) => s + parseFloat(r.amount || 0), 0);
+
+  document.getElementById('stat-total-rec').textContent = allRecords.length;
+  document.getElementById('stat-month').textContent = 'RM ' + monthTotal.toFixed(0);
+  document.getElementById('stat-perm').textContent = allRecords.filter(r => r.vehicleType === 'Permanent').length;
+  document.getElementById('stat-temp').textContent = allRecords.filter(r => r.vehicleType === 'Temporary').length;
+  document.getElementById('rec-count').textContent = allRecords.length;
+
+  renderRecordsList();
+}
+
+function renderRecordsList() {
+  const list = document.getElementById('records-list');
+  if (allRecords.length === 0) {
+    list.innerHTML = `<div class="empty-state"><div class="empty-icon">📂</div><p>No records yet.<br>Tap <strong>Entry</strong> to add your first claim.</p></div>`;
+    return;
+  }
+  const sorted = [...allRecords].sort((a, b) => new Date(b.date) - new Date(a.date));
+  list.innerHTML = sorted.slice(0, 20).map(r => `
+    <div class="record-card" onclick="showRecordModal(${r.id})">
+      <div class="record-icon ${r.vehicleType === 'Temporary' ? 'temp' : ''}">${r.vehicleType === 'Temporary' ? '🚙' : '🚗'}</div>
+      <div class="record-info">
+        <div class="record-plate">${r.plate}</div>
+        <div class="record-sub">${r.date} · ${r.carType} · <span class="badge ${r.vehicleType === 'Temporary' ? 'temp' : ''}">${r.vehicleType}</span></div>
+      </div>
+      <div class="record-amount">RM ${parseFloat(r.amount).toFixed(2)}</div>
+    </div>
+  `).join('');
+}
+
+// ── Entry Form ──
+function selectVehicleType(type) {
+  vehicleType = type;
+  document.getElementById('opt-perm').classList.toggle('selected', type === 'Permanent');
+  document.getElementById('opt-temp').classList.toggle('selected', type === 'Temporary');
+  document.querySelector('#opt-perm input').checked = type === 'Permanent';
+  document.querySelector('#opt-temp input').checked = type === 'Temporary';
+}
+
+function handleReasonSelect(val) {
+  document.getElementById('reason-custom-field').style.display = val === 'Other' ? 'flex' : 'none';
+}
+
+async function submitEntry() {
+  const date = document.getElementById('f-date').value;
+  const plate = document.getElementById('f-plate').value.trim().toUpperCase();
+  const carType = document.getElementById('f-cartype').value;
+  const reasonSel = document.getElementById('f-reason-select').value;
+  const reasonCustom = document.getElementById('f-reason-custom').value.trim();
+  const amount = parseFloat(document.getElementById('f-amount').value);
+  const notes = document.getElementById('f-notes').value.trim();
+
+  const reason = reasonSel === 'Other' ? (reasonCustom || 'Custom reason') : reasonSel;
+
+  if (!date || !plate || !carType || !reasonSel || isNaN(amount) || amount <= 0) {
+    showToast('⚠️ Please fill all required fields');
+    return;
+  }
+
+  const record = { date, plate, vehicleType, carType, reason, amount, notes, createdAt: new Date().toISOString() };
+  const id = await dbAdd('claims', record);
+  record.id = id;
+  allRecords.push(record);
+
+  updateDashboard();
+  populateMonthFilter();
+  renderExcelPreview();
+  clearForm();
+  showToast('✅ Claim saved!');
+  switchPage('dashboard');
+}
+
+function clearForm() {
+  setTodayDate();
+  document.getElementById('f-plate').value = '';
+  document.getElementById('f-cartype').value = '';
+  document.getElementById('f-reason-select').value = '';
+  document.getElementById('f-reason-custom').value = '';
+  document.getElementById('f-amount').value = '';
+  document.getElementById('f-notes').value = '';
+  document.getElementById('reason-custom-field').style.display = 'none';
+  selectVehicleType('Permanent');
+}
+
+// ── Excel Preview ──
+function getFilteredRecords() {
+  const month = document.getElementById('filter-month').value;
+  const type = document.getElementById('filter-type').value;
+  return allRecords.filter(r => {
+    const mMatch = month === 'all' || r.date.startsWith(month);
+    const tMatch = type === 'all' || r.vehicleType === type;
+    return mMatch && tMatch;
+  }).sort((a, b) => new Date(a.date) - new Date(b.date));
+}
+
+function renderExcelPreview() {
+  const recs = getFilteredRecords();
+  const tbody = document.getElementById('excel-tbody');
+  const tfoot = document.getElementById('excel-tfoot');
+  document.getElementById('excel-count').textContent = recs.length + ' rows';
+
+  if (recs.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:var(--grey-400);padding:20px;">No records found</td></tr>`;
+    tfoot.innerHTML = '';
+    return;
+  }
+
+  tbody.innerHTML = recs.map((r, i) => `
+    <tr>
+      <td>${i + 1}</td>
+      <td>${r.date}</td>
+      <td><strong>${r.plate}</strong></td>
+      <td><span class="badge ${r.vehicleType === 'Temporary' ? 'temp' : ''}">${r.vehicleType}</span></td>
+      <td>${r.carType}</td>
+      <td style="max-width:120px;white-space:normal;font-size:0.72rem;">${r.reason}</td>
+      <td style="text-align:right;font-weight:700;">RM ${parseFloat(r.amount).toFixed(2)}</td>
+    </tr>
+  `).join('');
+
+  const total = recs.reduce((s, r) => s + parseFloat(r.amount || 0), 0);
+  tfoot.innerHTML = `<tr class="total-row"><td colspan="6" style="text-align:right;font-weight:800;">TOTAL:</td><td style="text-align:right;font-weight:800;">RM ${total.toFixed(2)}</td></tr>`;
+}
+
+function populateMonthFilter() {
+  const sel = document.getElementById('filter-month');
+  const months = [...new Set(allRecords.map(r => r.date.substring(0, 7)))].sort().reverse();
+  const cur = sel.value;
+  sel.innerHTML = '<option value="all">All Records</option>' +
+    months.map(m => {
+      const [y, mo] = m.split('-');
+      const label = new Date(y, mo - 1).toLocaleDateString('en-MY', { year: 'numeric', month: 'long' });
+      return `<option value="${m}" ${m === cur ? 'selected' : ''}>${label}</option>`;
+    }).join('');
+}
+
+// ── Export Excel ──
+function exportExcel() {
+  const recs = getFilteredRecords();
+  if (recs.length === 0) { showToast('⚠️ No records to export'); return; }
+
+  const company = localStorage.getItem('company') || 'Company Name';
+  const approver = localStorage.getItem('approver') || '';
+  const wb = XLSX.utils.book_new();
+
+  // Header rows
+  const wsData = [];
+  wsData.push([company]);
+  wsData.push(['FUEL CASH TOPUP CLAIM FORM']);
+  wsData.push(['Generated: ' + new Date().toLocaleDateString('en-MY')]);
+  wsData.push([]);
+  wsData.push(['No', 'Date', 'No Plate', 'Permanent / Temporary Vehicle', 'Car Type', 'Reason', 'Cash Amount (RM)']);
+
+  recs.forEach((r, i) => {
+    wsData.push([
+      i + 1,
+      r.date,
+      r.plate,
+      r.vehicleType,
+      r.carType,
+      r.reason,
+      parseFloat(r.amount)
+    ]);
+  });
+
+  wsData.push([]);
+  wsData.push(['', '', '', '', '', 'TOTAL:', { f: `SUM(G6:G${5 + recs.length})` }]);
+  wsData.push([]);
+  wsData.push(['Prepared by:', '', '', '', 'Approved by:', approver]);
+
+  const ws = XLSX.utils.aoa_to_sheet(wsData);
+
+  // Column widths
+  ws['!cols'] = [
+    { wch: 5 }, { wch: 13 }, { wch: 12 }, { wch: 22 },
+    { wch: 16 }, { wch: 55 }, { wch: 16 }
+  ];
+
+  // Merge title rows
+  ws['!merges'] = [
+    { s: { r: 0, c: 0 }, e: { r: 0, c: 6 } },
+    { s: { r: 1, c: 0 }, e: { r: 1, c: 6 } },
+    { s: { r: 2, c: 0 }, e: { r: 2, c: 6 } }
+  ];
+
+  XLSX.utils.book_append_sheet(wb, ws, 'Fuel Claims');
+  const filename = `FuelClaim_${new Date().toISOString().split('T')[0]}.xlsx`;
+  XLSX.writeFile(wb, filename);
+  showToast('📗 Excel exported!');
+}
+
+// ── WhatsApp ──
+function shareWhatsApp() {
+  const recs = getFilteredRecords();
+  if (recs.length === 0) { showToast('⚠️ No records to share'); return; }
+  const total = recs.reduce((s, r) => s + parseFloat(r.amount || 0), 0);
+  const company = localStorage.getItem('company') || '';
+
+  let msg = `⛽ *FUEL CASH TOPUP CLAIM*\n`;
+  if (company) msg += `🏢 ${company}\n`;
+  msg += `📅 ${new Date().toLocaleDateString('en-MY')}\n\n`;
+  recs.forEach((r, i) => {
+    msg += `${i + 1}. ${r.date} | ${r.plate} | ${r.vehicleType} | ${r.carType} | RM ${parseFloat(r.amount).toFixed(2)}\n`;
+  });
+  msg += `\n*TOTAL: RM ${total.toFixed(2)}*`;
+
+  window.open('https://wa.me/?text=' + encodeURIComponent(msg));
+}
+
+// ── JSON Backup ──
+function exportJSON() {
+  const data = { version: '1.0', exportedAt: new Date().toISOString(), records: allRecords };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `FuelClaim_Backup_${new Date().toISOString().split('T')[0]}.json`;
+  a.click();
+  showToast('💾 JSON backup exported!');
+}
+
+function importJSON(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = async e => {
+    try {
+      const data = JSON.parse(e.target.result);
+      const records = data.records || data;
+      if (!Array.isArray(records)) throw new Error('Invalid format');
+
+      for (const r of records) {
+        const { id, ...rest } = r;
+        await dbAdd('claims', rest);
+      }
+      allRecords = await dbGetAll('claims');
+      updateDashboard();
+      populateMonthFilter();
+      renderExcelPreview();
+      showToast(`✅ Imported ${records.length} records!`);
+    } catch {
+      showToast('❌ Invalid backup file');
+    }
+    event.target.value = '';
+  };
+  reader.readAsText(file);
+}
+
+// ── Record Modal ──
+async function showRecordModal(id) {
+  const r = allRecords.find(x => x.id === id);
+  if (!r) return;
+  currentDeleteId = id;
+  document.getElementById('modal-record-title').textContent = `🚗 ${r.plate}`;
+  document.getElementById('modal-record-body').innerHTML = `
+    <div class="modal-detail-row"><span class="key">Date</span><span class="val">${r.date}</span></div>
+    <div class="modal-detail-row"><span class="key">No Plate</span><span class="val">${r.plate}</span></div>
+    <div class="modal-detail-row"><span class="key">Vehicle Type</span><span class="val"><span class="badge ${r.vehicleType === 'Temporary' ? 'temp' : ''}">${r.vehicleType}</span></span></div>
+    <div class="modal-detail-row"><span class="key">Car Type</span><span class="val">${r.carType}</span></div>
+    <div class="modal-detail-row"><span class="key">Reason</span><span class="val" style="max-width:200px;text-align:right;">${r.reason}</span></div>
+    <div class="modal-detail-row"><span class="key">Amount</span><span class="val amount-big">RM ${parseFloat(r.amount).toFixed(2)}</span></div>
+    ${r.notes ? `<div class="modal-detail-row"><span class="key">Notes</span><span class="val">${r.notes}</span></div>` : ''}
+    <div class="modal-detail-row"><span class="key">Recorded</span><span class="val" style="font-size:0.78rem;">${new Date(r.createdAt).toLocaleString('en-MY')}</span></div>
+  `;
+  document.getElementById('modal-delete-btn').onclick = () => deleteRecord(id);
+  showModal('modal-record');
+}
+
+async function deleteRecord(id) {
+  if (!confirm('Delete this record?')) return;
+  await dbDelete('claims', id);
+  allRecords = allRecords.filter(r => r.id !== id);
+  updateDashboard();
+  populateMonthFilter();
+  renderExcelPreview();
+  closeModal('modal-record');
+  showToast('🗑️ Record deleted');
+}
+
+// ── Settings ──
+async function loadSettings() {
+  const company = localStorage.getItem('company') || 'Not set';
+  const approver = localStorage.getItem('approver') || 'Not set';
+  document.getElementById('setting-company').textContent = company;
+  document.getElementById('setting-approver').textContent = approver;
+}
+
+function editCompany() {
+  const val = prompt('Enter company name:', localStorage.getItem('company') || '');
+  if (val !== null) { localStorage.setItem('company', val); loadSettings(); showToast('✅ Company name saved'); }
+}
+
+function editApprover() {
+  const val = prompt('Enter approver name:', localStorage.getItem('approver') || '');
+  if (val !== null) { localStorage.setItem('approver', val); loadSettings(); showToast('✅ Approver name saved'); }
+}
+
+async function confirmClearAll() {
+  if (!confirm('⚠️ This will delete ALL records permanently. Are you sure?')) return;
+  if (!confirm('Final confirmation: Delete all fuel claim records?')) return;
+  const tx = db.transaction('claims', 'readwrite');
+  tx.objectStore('claims').clear();
+  await new Promise(r => tx.oncomplete = r);
+  allRecords = [];
+  updateDashboard();
+  populateMonthFilter();
+  renderExcelPreview();
+  showToast('🗑️ All records cleared');
+}
+
+function updateStorageStatus() {
+  if ('storage' in navigator && 'estimate' in navigator.storage) {
+    navigator.storage.estimate().then(({ usage, quota }) => {
+      const usedMB = (usage / 1024 / 1024).toFixed(2);
+      const quotaMB = (quota / 1024 / 1024).toFixed(0);
+      document.getElementById('storage-status').textContent = `${usedMB} MB used of ~${quotaMB} MB`;
+    });
+  } else {
+    document.getElementById('storage-status').textContent = 'IndexedDB active — offline ready';
+  }
+}
+
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); deferredPrompt = e; });
+function toggleInstallPrompt() {
+  if (deferredPrompt) {
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice.then(() => { deferredPrompt = null; });
+  } else {
+    showToast('ℹ️ Use browser menu → "Add to Home Screen"');
+  }
+}
+
+// ── Navigation ──
+function switchPage(pageId, tabEl, bnav) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + pageId).classList.add('active');
+
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  const tab = tabEl || document.querySelector(`.nav-tab[data-page="${pageId}"]`);
+  if (tab) tab.classList.add('active');
+
+  document.querySelectorAll('.bnav-btn').forEach(b => b.classList.remove('active'));
+  if (bnav) bnav.classList.add('active');
+
+  if (pageId === 'entry') {
+    const nextNo = allRecords.length + 1;
+    document.getElementById('f-no').value = nextNo;
+  }
+}
+
+// ── Modal ──
+function showModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.modal-overlay').forEach(m => {
+  m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); });
+});
+
+// ── Toast ──
+let toastTimer;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+// ── Print ──
+function printPage() { switchPage('excel'); setTimeout(() => window.print(), 200); }
+
+// ── Service Worker ──
+if ('serviceWorker' in navigator && location.protocol === 'https:') {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js')
+      .then(() => console.log('[SW] Registered'))
+      .catch(() => console.log('[SW] Skipped (requires HTTPS host)'));
+  });
+}
+
+init();
+</script>
+</body>
+</html>
